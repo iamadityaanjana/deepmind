@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { ArrowLeft } from "lucide-react"
+import YouTubeThumbnail from "@/components/youtube"
+import BlogLink from "@/components/links"
 
 // Mock API response data based on mode
 const getMockData = (query: string, mode: string) => {
@@ -90,6 +92,10 @@ export default function Results() {
           <p className="text-center text-gray-400 instrument-serif">No results found</p>
         )}
       </div>
+      <div  className="w-[15vw]"><YouTubeThumbnail videoId="jpmuovnWSDA"/>
+      <BlogLink url="google.com" title="Google"/></div>
+      
+      
     </main>
   )
 }
