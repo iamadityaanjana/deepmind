@@ -68,7 +68,7 @@ export default function Results() {
       <div className="max-w-3xl mx-auto">
         <button
           onClick={() => router.back()}
-          className="flex items-center text-gray-400 hover:text-white mb-8 instrument-serif"
+          className="flex items-center text-gray-400 hover:text-black mb-8 instrument-serif"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to search
