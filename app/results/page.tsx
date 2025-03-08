@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation"
 import { ArrowLeft } from "lucide-react"
 import YouTubeThumbnail from "@/components/youtube"
 import BlogLink from "@/components/links"
+import Toc from "@/components/Toc"
 
 // Mock API response data based on mode
 const getMockData = (query: string, mode: string) => {
@@ -66,36 +67,46 @@ export default function Results() {
   }, [query, mode])
 
   return (
-    <main className="min-h-screen p-8">
-      <div className="max-w-3xl mx-auto">
-        <button
-          onClick={() => router.back()}
-          className="flex items-center text-gray-400 hover:text-black mb-8 instrument-serif"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to search
-        </button>
+    <main className="min-h-screen p-8 relative">
+      <button
+        onClick={() => router.back()}
+        className="flex items-center text-gray-400 hover:text-black mb-8 instrument-serif ml-64"
+      >
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        Back to search
+      </button>
 
-        {loading ? (
-          <div className="flex flex-col items-center justify-center py-12">
-            <div className="w-12 h-12 border-t-2 border-black rounded-full animate-spin"></div>
-            <p className="mt-4 text-gray-400 instrument-serif">Loading results...</p>
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-12">
+          <div className="w-12 h-12 border-t-2 border-black rounded-full animate-spin"></div>
+          <p className="mt-4 text-gray-400 instrument-serif">Loading results...</p>
+        </div>
+      ) : data ? (
+        <div className="flex justify-between">
+          {/* Table of Contents positioned on the left */}
+          <div className="fixed left-8 top-24 w-64">
+            <Toc />
           </div>
-        ) : data ? (
-          <div className="space-y-6">
-            <h1 className="text-3xl text-te md:text-4xl instrument-serif">{data.title}</h1>
-            <div className="bg-gray-800 rounded-lg p-6">
-              <p className="text-lg text-teal-50 instrument-serif leading-relaxed">{data.content}</p>
+          
+          {/* Main content in the center */}
+          <div className="max-w-3xl mx-auto px-4" style={{ marginLeft: '280px' }}>
+            <div className="space-y-6">
+              <h1 className="text-3xl text-te md:text-4xl instrument-serif">{data.title}</h1>
+              <div className="bg-gray-800 rounded-lg p-6">
+                <p className="text-lg text-teal-50 instrument-serif leading-relaxed">{data.content}</p>
+              </div>
             </div>
           </div>
-        ) : (
-          <p className="text-center text-gray-400 instrument-serif">No results found</p>
-        )}
-      </div>
-      <div  className="w-[15vw]"><YouTubeThumbnail videoId="jpmuovnWSDA"/>
-      <BlogLink url="google.com" title="Google"/></div>
-      
-      
+          
+          {/* Additional content positioned on the right */}
+          <div className="fixed right-8 top-24 w-64">
+            <YouTubeThumbnail videoId="jpmuovnWSDA"/>
+            <BlogLink url="google.com" title="Google"/>
+          </div>
+        </div>
+      ) : (
+        <p className="text-center text-gray-400 instrument-serif">No results found</p>
+      )}
     </main>
   )
 }
