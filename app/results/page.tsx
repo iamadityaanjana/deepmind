@@ -1,113 +1,211 @@
-"use client"
+'use client'
 
-import { useEffect, useState } from "react"
-import { useSearchParams, useRouter } from "next/navigation"
-import { ArrowLeft } from "lucide-react"
-import YouTubeThumbnail from "@/components/youtube"
-import BlogLink from "@/components/links"
-import Toc from "@/components/Toc"
+import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { TableOfContents } from '@/components/Toc';
+import { MainContent } from '@/components/main-content';
+import { Resources } from '@/components/resources';
+import { TableOfContent, Resource, Content } from '../types';
+import { Menu, BookOpen, Bookmark } from 'lucide-react';
 
-// Mock API response data based on mode
-const getMockData = (query: string, mode: string) => {
-  switch (mode) {
-    case "summary":
-      return {
-        title: `Summary of "${query}"`,
-        content: `This is a brief summary about ${query}. The summary provides key points and main ideas about the topic in a concise format.`,
-      }
-    case "explain":
-      return {
-        title: `Explanation of "${query}"`,
-        content: `This is a detailed explanation about ${query}. The explanation breaks down the topic into understandable parts and provides examples to help clarify complex concepts.`,
-      }
-    case "research":
-      return {
-        title: `Research on "${query}"`,
-        content: `This is in-depth research about ${query}. The research includes academic findings, statistics, and references to scholarly articles related to the topic.`,
-      }
-    default:
-      return {
-        title: `Information about "${query}"`,
-        content: `Here is some information about ${query}.`,
-      }
-  }
-}
+// Dummy data - replace with actual API calls
+const dummyToc: TableOfContent[] = [
+  { id: 1, title: "Introduction to AI" },
+  { id: 2, title: "Machine Learning Basics" },
+  { id: 3, title: "Neural Networks" },
+  { id: 4, title: "Deep Learning" },
+];
 
-export default function Results() {
-  const searchParams = useSearchParams()
-  const router = useRouter()
-  const [data, setData] = useState<{ title: string; content: string } | null>(null)
-  const [loading, setLoading] = useState(true)
+const dummyResources: Resource[] = [
+  {
+    id: 1,
+    title: "AI Fundamentals",
+    type: "youtube",
+    url: "https://youtube.com/watch?v=example1",
+  },
+  {
+    id: 2,
+    title: "Getting Started with ML",
+    type: "blog",
+    url: "https://example.com/blog/ml-basics",
+  },
+];
 
-  const query = searchParams.get("query") || ""
-  const mode = searchParams.get("mode") || "summary"
+const dummyContent: Content[] = [
+  {
+    id: 1,
+    content: `# Introduction to AI
+
+Artificial Intelligence (AI) is transforming our world. Let's explore the basics.
+
+\`\`\`python
+# Simple AI example
+def greet(name):
+    return f"Hello {name}, welcome to AI!"
+\`\`\`
+
+## Key Concepts
+1. Machine Learning
+2. Neural Networks
+3. Deep Learning`,
+  },
+  {
+    id: 2,
+    content: `# Machine Learning Basics
+
+Machine Learning is a subset of AI that focuses on data and algorithms.
+
+\`\`\`python
+import sklearn
+# ML code example
+\`\`\``,
+  },
+];
+
+function App() {
+  const [searchParams] = useSearchParams();
+  const [selectedId, setSelectedId] = useState(1);
+  const [content, setContent] = useState<Content | null>(null);
+  const [showToc, setShowToc] = useState(false);
+  const [showResources, setShowResources] = useState(false);
+  const [cachedContent, setCachedContent] = useState<Record<number, Content>>({});
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Load cached content from localStorage on mount
+  useEffect(() => {
+    const cached = localStorage.getItem('cachedContent');
+    if (cached) {
+      setCachedContent(JSON.parse(cached));
+    }
+  }, []);
 
   useEffect(() => {
-    // Simulate API call with a delay
-    const fetchData = async () => {
-      setLoading(true)
+    const query = searchParams.get('query');
+    const mode = searchParams.get('mode');
 
-      try {
-        // Simulate network request
-        await new Promise((resolve) => setTimeout(resolve, 1500))
-
-        // Get mock data based on query and mode
-        const result = getMockData(query, mode)
-        setData(result)
-      } catch (error) {
-        console.error("Error fetching data:", error)
-      } finally {
-        setLoading(false)
+    const fetchContent = async (id: number) => {
+      // Check if content is already cached
+      if (cachedContent[id]) {
+        setContent(cachedContent[id]);
+        return;
       }
+
+      setIsLoading(true);
+      try {
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        // For demo, we're using dummy data
+        // In production, replace with actual API call
+        const selectedContent = dummyContent.find((c) => c.id === id);
+        
+        if (selectedContent) {
+          // Cache the new content
+          const newCache = { ...cachedContent, [id]: selectedContent };
+          setCachedContent(newCache);
+          localStorage.setItem('cachedContent', JSON.stringify(newCache));
+          setContent(selectedContent);
+        }
+      } catch (error) {
+        console.error('Error fetching content:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (query && mode) {
+      // Here you would typically make an API call to your LLM
+      console.log(`Query: ${query}, Mode: ${mode}`);
     }
 
-    if (query) {
-      fetchData()
-    }
-  }, [query, mode])
+    fetchContent(selectedId);
+  }, [searchParams, selectedId, cachedContent]);
+
+  const handleTopicSelect = (id: number) => {
+    setSelectedId(id);
+    setShowToc(false); // Close mobile menu after selection
+  };
+
+  const toggleToc = () => {
+    setShowToc(!showToc);
+    if (!showToc) setShowResources(false);
+  };
+
+  const toggleResources = () => {
+    setShowResources(!showResources);
+    if (!showResources) setShowToc(false);
+  };
+
+  const currentTopic = dummyToc.find(item => item.id === selectedId);
 
   return (
-    <main className="min-h-screen p-8 relative">
-      <button
-        onClick={() => router.back()}
-        className="flex items-center text-gray-400 hover:text-black mb-8 instrument-serif ml-64"
-      >
-        <ArrowLeft className="mr-2 h-4 w-4" />
-        Back to search
-      </button>
+    <div className="min-h-screen bg-white relative">
+      {/* Mobile Header */}
+      <div className="lg:hidden flex items-center justify-between p-4 border-b">
+        <button
+          onClick={toggleToc}
+          className="p-2 hover:bg-gray-100 rounded-lg"
+          aria-label="Toggle Table of Contents"
+        >
+          <Menu className="w-6 h-6" />
+        </button>
+        <h1 className="text-xl font-semibold">{currentTopic?.title || 'AI Learning Platform'}</h1>
+        <button
+          onClick={toggleResources}
+          className="p-2 hover:bg-gray-100 rounded-lg"
+          aria-label="Toggle Resources"
+        >
+          <BookOpen className="w-6 h-6" />
+        </button>
+      </div>
 
-      {loading ? (
-        <div className="flex flex-col items-center justify-center py-12">
-          <div className="w-12 h-12 border-t-2 border-black rounded-full animate-spin"></div>
-          <p className="mt-4 text-gray-400 instrument-serif">Loading results...</p>
+      <div className="h-[calc(100vh-64px)] lg:h-screen flex">
+        {/* Left Sidebar - Table of Contents */}
+        <div
+          className={`${
+            showToc ? 'translate-x-0' : '-translate-x-full'
+          } lg:translate-x-0 fixed lg:relative left-0 top-[64px] lg:top-0 w-80 h-[calc(100vh-64px)] lg:h-screen bg-white transform transition-transform duration-300 ease-in-out z-20 overflow-y-auto border-r`}
+        >
+          <TableOfContents
+            toc={dummyToc}
+            selectedId={selectedId}
+            onSelect={handleTopicSelect}
+          />
         </div>
-      ) : data ? (
-        <div className="flex justify-between">
-          {/* Table of Contents positioned on the left */}
-          <div className="fixed left-8 top-24 w-64">
-            <Toc />
-          </div>
-          
-          {/* Main content in the center */}
-          <div className="max-w-3xl mx-auto px-4" style={{ marginLeft: '280px' }}>
-            <div className="space-y-6">
-              <h1 className="text-3xl text-te md:text-4xl instrument-serif">{data.title}</h1>
-              <div className="bg-gray-800 rounded-lg p-6">
-                <p className="text-lg text-teal-50 instrument-serif leading-relaxed">{data.content}</p>
-              </div>
-            </div>
-          </div>
-          
-          {/* Additional content positioned on the right */}
-          <div className="fixed right-8 top-24 w-64">
-            <YouTubeThumbnail videoId="jpmuovnWSDA"/>
-            <BlogLink url="google.com" title="Google"/>
-          </div>
+
+        {/* Main Content Area */}
+        <div className="flex-1 overflow-y-auto">
+          <MainContent
+            content={content}
+            toc={dummyToc}
+            selectedId={selectedId}
+            onNavigate={handleTopicSelect}
+            isLoading={isLoading}
+          />
         </div>
-      ) : (
-        <p className="text-center text-gray-400 instrument-serif">No results found</p>
+
+        {/* Right Sidebar - Resources */}
+        <div
+          className={`${
+            showResources ? 'translate-x-0' : 'translate-x-full'
+          } lg:translate-x-0 fixed lg:relative right-0 top-[64px] lg:top-0 w-80 h-[calc(100vh-64px)] lg:h-screen bg-white transform transition-transform duration-300 ease-in-out z-20 overflow-y-auto border-l`}
+        >
+          <Resources resources={dummyResources} />
+        </div>
+      </div>
+
+      {/* Overlay for mobile */}
+      {(showToc || showResources) && (
+        <div
+          className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-10"
+          onClick={() => {
+            setShowToc(false);
+            setShowResources(false);
+          }}
+        />
       )}
-    </main>
-  )
+    </div>
+  );
 }
 
+export default App;

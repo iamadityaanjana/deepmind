@@ -1,30 +1,35 @@
-import { useState } from "react";
+import React from 'react';
+import { TableOfContent } from '@/app/types';
+import { BookOpen } from 'lucide-react';
 
-const dummyData = [
-  { id: 1, title: "Introduction to AI", content: "AI is the simulation of human intelligence in machines..." },
-  { id: 2, title: "Machine Learning Basics", content: "Machine learning is a subset of AI that enables systems to learn..." },
-  { id: 3, title: "Deep Learning Overview", content: "Deep learning is a class of ML that uses neural networks..." },
-];
+interface Props {
+  toc: TableOfContent[];
+  selectedId: number;
+  onSelect: (id: number) => void;
+}
 
-export default function Toc() {
-  const [selectedTopic, setSelectedTopic] = useState(dummyData[0]);
-
+export const TableOfContents: React.FC<Props> = ({ toc, selectedId, onSelect }) => {
   return (
-    <div className="bg-gray-100 p-4 rounded-lg border w-full">
-      <h2 className="text-xl font-bold mb-4">Table of Contents</h2>
-      <ul>
-        {dummyData.map((topic) => (
-          <li
-            key={topic.id}
-            className={`p-2 cursor-pointer rounded-lg hover:bg-gray-200 transition ${
-              selectedTopic.id === topic.id ? "bg-blue-300" : ""
+    <div className="h-full bg-gray-50 p-4 border-r border-gray-200">
+      <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+        <BookOpen className="w-5 h-5" />
+        Table of Contents
+      </h2>
+      <div className="space-y-2">
+        {toc.map((item) => (
+          <button
+            key={item.id}
+            onClick={() => onSelect(item.id)}
+            className={`w-full text-left p-3 rounded-lg transition-colors ${
+              selectedId === item.id
+                ? 'bg-blue-100 text-blue-700'
+                : 'hover:bg-gray-100'
             }`}
-            onClick={() => setSelectedTopic(topic)}
           >
-            {topic.title}
-          </li>
+            {item.title}
+          </button>
         ))}
-      </ul>
+      </div>
     </div>
   );
-}
+};
